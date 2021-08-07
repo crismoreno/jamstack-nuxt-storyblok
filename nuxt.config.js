@@ -1,4 +1,5 @@
 import axios from 'axios';
+import tailwindTypography from '@tailwindcss/typography';
 
 export default {
   // Target: https://go.nuxtjs.dev/config-target
@@ -43,6 +44,12 @@ export default {
     // https://go.nuxtjs.dev/tailwindcss
     '@nuxtjs/tailwindcss',
   ],
+
+	tailwindcss: {
+    config: {
+      plugins: [tailwindTypography]
+		}
+	},
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
