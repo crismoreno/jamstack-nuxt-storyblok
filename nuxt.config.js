@@ -1,10 +1,12 @@
+import axios from 'axios';
+
 export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: 'static',
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'nuxt-5min-storyblok',
+    title: 'Jamstack Nuxt',
     htmlAttrs: {
       lang: 'en'
     },
@@ -28,7 +30,13 @@ export default {
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
-  components: true,
+  components: [
+		'~/components',
+		'~/components/atoms',
+		'~/components/molecules',
+		'~/components/organisms',
+		'~/components/templates',
+	],
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
@@ -43,7 +51,7 @@ export default {
     [
       'storyblok-nuxt',
       {
-        accessToken: '432cQ9VTZJMlxGzBORHWSwtt',
+        accessToken: process.env.STORYBLOK_TOKEN,
         cacheProvider: 'memory'
       }
     ],
@@ -54,5 +62,33 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+  },
+
+	generate: {
+    routes(callback) {
+      const routesToIgnore = ['home', 'layout']
+      let cache_version = 0
+      let routes = ['/']
+  
+      // Load space and receive latest cache version key to improve performance
+      axios.get(
+        `https://api.storyblok.com/v2/cdn/spaces/me?token=${process.env.STORYBLOK_TOKEN}`
+      ).then((space_res) => {
+  
+        // timestamp of latest publish
+        cache_version = space_res.data.space.version
+  
+        // Call for all Links using the Links API: <https://www.storyblok.com/docs/Delivery-Api/Links>
+        axios.get(`https://api.storyblok.com/v2/cdn/links?token=${process.env.STORYBLOK_TOKEN}&version=published&cv=${cache_version}&per_page=100`).then((res) => {
+          Object.keys(res.data.links).forEach((key) => {
+            if (!routesToIgnore.includes(res.data.links[key].slug)) {
+              routes.push('/' + res.data.links[key].slug)
+            }
+          })
+  
+          callback(null, routes)
+        })
+      })
+    }
   }
 }
